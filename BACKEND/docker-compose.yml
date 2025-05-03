@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:   # this will become one container, jitni service utni container
+    image: postgres:13  # Ye batata hai ki kaunsi Docker image se container banana hai (here, official postgres version 13).
+    container_name: postgres # Isse container ka naam fix ho jata hai — warna Docker random naam de deta hai (e.g., sleepy_morse 😂).
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"  # host:container   Yeh port mapping allow karti hai container ko bahar ki duniya se baat karne ke liye.
+    networks:
+      - backend
+    volumes:
+      - postgres-data:/var/lib/postgresql/data    # volume mein DB ka data safe rahega, even if container delete ho jaaye
+
+  redis:    # this will become another container, jitni service utni container
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"  # host:container
+    networks:
+      - backend
+
+  elasticsearch:    # this will become another container for search
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node    # Cluster ka load kam karne ke liye single-node mode
+      - bootstrap.memory_lock=true    # Memory lock karne se JVM ko better performance milti hai
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m  # JVM memory limit fix ki ja rahi (minimum aur maximum dono 512MB)
+    ports:
+      - "9200:9200"    # expose to host, for REST API calls
+      - "9300:9300"    # cluster ke internal communication ke liye
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - backend
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stayease-app
+    ports:
+      - "${SPRING_PORT}:8081"  # host:container
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+    networks:
+      - backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+
+volumes:
+  postgres-data:
+
+networks:
+  backend:
+######################################################
+#	📦 Volume kya hota hai?
+#	Volume ek permanent storage hota hai jo container ke bahar rehta hai.
+#	Jaise hi container delete hota hai, normal files chali jaati — par volume mein data safe rehta hai.
+#	🧠 Tu jaise Google Drive pe backup rakhta hai — waise hi postgres-data volume mein DB ka data safe rahega, even if container delete ho jaaye.

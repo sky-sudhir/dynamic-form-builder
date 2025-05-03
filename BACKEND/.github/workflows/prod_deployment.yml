@@ -1,0 +1,55 @@
+name: CI/CD Pipeline for dynamic-form-builder App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout code
+        uses: actions/checkout@v3
+
+      - name: ☕ Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: 🧱 Grant execute permissions to Gradle
+        run: chmod +x gradlew
+
+      - name: 🧹 Build Spring Boot app using Gradle (QA Profile)
+        run: ./gradlew clean build -Dspring.profiles.active=qa
+
+      - name: 🐳 Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: 🏗️ Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/stayease-app:latest .
+
+      - name: 🚀 Push image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/stayease-app:latest
+
+      - name: 📦 Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script: |
+            # go to the directory where you placed docker-compose.yml & .env
+            cd /home/ec2-user
+
+            # pull the latest image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/stayease-app:latest
+
+            # bring down any old stack (ignore errors)
+            docker-compose --env-file .env down || true
+
+            # bring up containers, loading env vars from .env
+            docker-compose --env-file .env up -d
