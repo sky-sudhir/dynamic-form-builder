@@ -5,7 +5,7 @@ FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 
 # Step 3: Copy the jar file into the container
-COPY build/libs/stayease-0.0.1-SNAPSHOT.jar app.jar
+COPY build/libs/formbuilder-0.0.1-SNAPSHOT.jar app.jar
 
 # Step 4: Expose port 8081 (since your app runs on this)
 EXPOSE 8081
