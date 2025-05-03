@@ -20,11 +20,10 @@ jobs:
           java-version: "21"
 
       - name: 🧱 Grant execute permissions to Gradle
-        # working-directory: ./BACKEND
-        run: chmod +x ./BACKEND/gradlew
+        working-directory: ./BACKEND
+        run: chmod +x gradlew
 
       - name: 🧹 Build Spring Boot app using Gradle (QA Profile)
-        working-directory: ./BACKEND
         run: ./gradlew clean build -Dspring.profiles.active=qa
 
       - name: 🐳 Login to Docker Hub
