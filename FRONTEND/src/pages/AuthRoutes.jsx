@@ -10,7 +10,7 @@ function AuthRoutes() {
   return (
     <Suspense>
       <Routes>
-        <Route path="" element={<Navigate replace to="/login" />} />
+        <Route path="" element={<Navigate replace to="login" />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Signup />} />
         <Route path="verify" element={<OtpVerification />} />
