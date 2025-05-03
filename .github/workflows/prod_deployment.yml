@@ -32,10 +32,10 @@ jobs:
 
       - name: 🏗️ Build Docker image
         working-directory: ./BACKEND
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend-app:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/stayease-app:latest .
 
       - name: 🚀 Push image to Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/stayease-app:latest
 
       - name: 📦 Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -49,7 +49,7 @@ jobs:
             cd /home/ec2-user
 
             # pull the latest image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/backend-app:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/stayease-app:latest
 
             # bring down any old stack (ignore errors)
             docker-compose --env-file .env down || true

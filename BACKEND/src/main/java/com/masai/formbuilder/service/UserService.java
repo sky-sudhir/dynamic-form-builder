@@ -30,11 +30,7 @@ public class UserService {
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
         user.setMobileNumber(userDTO.getMobileNumber());
-        String rol = userDTO.getRole() != null ? userDTO.getRole().toUpperCase(): "CUSTOMER";
-
-        if(rol.equals("CUSTOMER") || rol.equals("HOTEL_MANAGER") || rol.equals("ADMIN")) {
-            user.setRole(Role.valueOf(rol));
-        }else user.setRole(Role.valueOf("CUSTOMER"));
+        user.setRole(Role.valueOf("ADMIN"));
         return userRepository.save(user);
     }
 
