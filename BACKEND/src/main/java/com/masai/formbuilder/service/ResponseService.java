@@ -30,10 +30,10 @@ public class ResponseService {
         if ("CLOSED".equals(form.getStatus())) {
             throw new BadRequestException("Form is closed");
         }
-//        boolean isDuplicate = responseRepository.existsByFormIdAndIpAddress(formId, ip);
-//        if (isDuplicate) {
-//            throw new BadRequestException("Duplicate submission detected");
-//        }
+       boolean isDuplicate = responseRepository.existsByFormIdAndIpAddress(formId, ip);
+       if (isDuplicate) {
+           throw new BadRequestException("Duplicate submission detected");
+       }
 
         Response response = new Response();
         response.setForm(form);
